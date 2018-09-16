@@ -16,8 +16,7 @@ app.use(logger("dev"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-var MONGODB_URI = process.env.MONGODB_URI
-//mongoose.connect("mongodb://localhost/newscrawler", {useNewUrlParser: true});
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mighty-ridge-82006";
 mongoose.Promise = Promise;
 mongoose.connect(MONGODB_URI);
 
@@ -25,15 +24,18 @@ app.get("/scrape", function(req, res) {
     axios.get("http://www.theonion.com").then(function(response) {
         var $ = cheerio.load(response.data);
 
-        $("content-wrapper a").each(function(i, element) {
+        $("content-wrapper").each(function(i, element) {
             var result = {};
-            
+            console.log(result);
             result.title = $(this)
                 .children("a")
                 .text();
             result.link = $(this)
                 .children("a")
                 .attr("href");
+            result.summary = $(this)
+                .children("p")
+                .text();
 
             db.Article.create(result)
                 .then(function(dbArticle) {
@@ -42,20 +44,10 @@ app.get("/scrape", function(req, res) {
                 .catch(function(err) {
                     return res.json(err);
                 });
+            console.log(result.title);
+            console.log(result.link);
         });
-        $("content-wrapper p").each(function(i, element) {
-            var result = {};
-            result.summary = $(this)
-                .children("p")
-                .text();
-            db.Article.create(result)
-                .then(function(dbArticle) {
-                    console.log(dbArticle);
-                })
-                .catch(function(err) {
-                    return res.json(err);
-                })
-        });
+    
         res.send("Scrape Complete");
     });
 });
