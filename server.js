@@ -21,15 +21,15 @@ mongoose.Promise = Promise;
 mongoose.connect(MONGODB_URI);
 
 app.get("/scrape", function(req, res) {
-    axios.get("http://www.theonion.com").then(function(response) {
+    axios.get("http://www.gamespot.com").then(function(response) {
         var $ = cheerio.load(response.data);
 
-        $("content-wrapper").each(function(i, element) {
+        $("article").each(function(i, element) {
             var result = {};
             console.log(result);
             result.title = $(this)
                 .children("a")
-                .text();
+                .attr("data-event-title");
             result.link = $(this)
                 .children("a")
                 .attr("href");
